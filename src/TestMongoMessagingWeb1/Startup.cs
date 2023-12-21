@@ -1,7 +1,6 @@
 using Defender.Mongo.MessageBroker.Extensions;
 using Defender.Mongo.MessageBroker.Configuration;
 using TestBase.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace TestBase
 {

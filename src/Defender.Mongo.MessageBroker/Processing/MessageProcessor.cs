@@ -43,7 +43,7 @@ internal class MessageProcessor : IConsumer, IProducer
     }
     #endregion
 
-    #region Set topic 
+    #region Topic 
     IProducer IProducer.SetTopic(string topicName)
     {
         return SetTopic(topicName);
@@ -61,7 +61,7 @@ internal class MessageProcessor : IConsumer, IProducer
     }
     #endregion
 
-    #region Set message type
+    #region Message type
     IConsumer IConsumer.SetMessageType(string messageType)
     {
         return SetMessageType(messageType);

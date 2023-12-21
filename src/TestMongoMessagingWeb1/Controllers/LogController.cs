@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using TestBase.Model;
 using TestBase.Services;
 
