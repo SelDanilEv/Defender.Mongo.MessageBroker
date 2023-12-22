@@ -1,6 +1,5 @@
 ﻿using Defender.Mongo.MessageBroker.Interfaces;
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TestBase.Model;
 
@@ -10,9 +9,9 @@ public class BackgroundListener : BackgroundService
 {
     private readonly IConsumer _consumer;
 
-    public BackgroundListener(IServiceProvider _services)
+    public BackgroundListener(IConsumer consumer)
     {
-        _consumer = _services.GetRequiredService<IConsumer>();
+        _consumer = consumer;
 
         _consumer.SetTopic(Topics.TextTopic).SetMessageType(MessageType.ClassName);
     }

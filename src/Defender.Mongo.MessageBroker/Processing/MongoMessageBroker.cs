@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Defender.Mongo.MessageBroker.Processing.Private;
+namespace Defender.Mongo.MessageBroker.Processing;
 
 internal class MongoMessageBroker : IMessageBroker
 {
@@ -83,7 +83,7 @@ internal class MongoMessageBroker : IMessageBroker
         {
             var filter = filterBuilder.Gt(x => x.InsertedDateTime, lastInsertDate);
 
-            if (request.MessageType != String.Empty)
+            if (request.MessageType != string.Empty)
             {
                 filter = filterBuilder.And(filter, filterBuilder.Eq(x => x.Type, request.MessageType));
             }
@@ -99,7 +99,7 @@ internal class MongoMessageBroker : IMessageBroker
                     });
                 }
             }
-            catch (FormatException)
+            catch (FormatException ex)
             {
                 throw;
             }

@@ -23,6 +23,8 @@ internal class MessageProcessor : IConsumer, IProducer
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new()
     {
+        if (model == null) throw new ArgumentNullException(nameof(model));
+
         await _messageBroker.PublsihAsync(_requestBuilder.Build<T>(), model, cancellationToken);
     }
 

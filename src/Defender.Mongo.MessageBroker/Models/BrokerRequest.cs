@@ -3,6 +3,6 @@
     internal class BrokerRequest
     {
         public string? TopicName { get; set; }
-        public string MessageType { get; set; }
+        public string? MessageType { get; set; }
     }
 }

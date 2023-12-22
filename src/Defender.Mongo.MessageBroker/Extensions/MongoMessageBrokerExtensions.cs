@@ -14,7 +14,7 @@ public static class MongoMessageBrokerExtensions
     {
         services.Configure<MessageBrokerOptions>(configuration);
 
-        services.AddSingleton<IMessageBroker, Processing.Private.MongoMessageBroker>();
+        services.AddSingleton<IMessageBroker, MongoMessageBroker>();
 
         services.AddTransient<IProducer, MessageProcessor>();
 
