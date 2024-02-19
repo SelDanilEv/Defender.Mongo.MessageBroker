@@ -21,8 +21,8 @@ namespace TestBase
                 configuration.GetSection(nameof(MessageBrokerOptions)).Bind(opt);
             });
 
-            services.AddHostedService<BackgroundListener>();
-            //services.AddHostedService<BackgroundPublisher>();
+            //services.AddHostedService<BackgroundListener>();
+            services.AddHostedService<BackgroundPublisher>();
             services.AddTransient<MessagingService>();
 
             return services;

@@ -30,6 +30,7 @@ Let's review the basic entities the library provides:
 - `IProducer`
 
 ## ITopicMessage and BaseTopicMessage
+
 ```
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
 public class TextMessage : BaseTopicMessage
@@ -39,6 +40,7 @@ public class TextMessage : BaseTopicMessage
     public string Text { get; set; }
 }
 ```
+
 All models you publish and receive must inherit from one of these. You don't need to worry about the fields.
 
 ## IConsumer
@@ -60,9 +62,9 @@ public class BackgroundListener : BackgroundService
 }
 ```
 
-* Use `SetTopic` to specify the topic to subscribe to. By default, it is set to "default".
-* Use `SetMessageType` to indicate the type of messages to listen to (it will skip other types). Possible values: `NoType` (subscribe to all), `ClassName` (set the type the same as the class name of the message), `Custom` (e.g., `.SetMessageType("custom-type"))`. By default, it's `NoType`.
-* To subscribe to the topic, use `SubscribeAsync` and pass a delegate with a parameter to specify what to do with the message after it is received.
+- Use `SetTopic` to specify the topic to subscribe to. By default, it is set to "default".
+- Use `SetMessageType` to indicate the type of messages to listen to (it will skip other types). Possible values: `NoType` (subscribe to all), `ClassName` (set the type the same as the class name of the message), `Custom` (e.g., `.SetMessageType("custom-type"))`. By default, it's `NoType`.
+- To subscribe to the topic, use `SubscribeAsync` and pass a delegate with a parameter to specify what to do with the message after it is received.
 
 ## IProducer
 
@@ -93,3 +95,7 @@ Everything is the same, but to publish a message, use the `PublishAsync` method.
 - After the connection is restored, it processes all messages that are later than the last message processed.
 - If you set `MaxTopicDocuments` or `MaxTopicByteSize` too small, messages might be discarded and never be processed after a crash.
 - If you need to ensure that only one service instance receives a message, create an auxiliary Consumer service that will be subscribed to the queue and will redirect the message to your service.
+
+## More samples
+
+More examples in TestMongoMessagingWeb1,2,3 and in TestBase projects

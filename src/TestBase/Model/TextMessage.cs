@@ -1,8 +1,9 @@
-﻿using Defender.Mongo.MessageBroker.Models.TopicMessage;
+﻿using Defender.Mongo.MessageBroker.Models.ProcessedEvent;
+using Defender.Mongo.MessageBroker.Models.TopicMessage;
 
 namespace TestBase.Model;
 
-public class TextMessage : BaseTopicMessage
+public class TextMessage : BaseTopicMessage, IProcessedEvent
 {
     public TextMessage()
     {
@@ -14,4 +15,9 @@ public class TextMessage : BaseTopicMessage
     }
 
     public string Text { get; set; }
+
+    public DateTime ProcessedDateTime
+    {
+        get; set;
+    }
 }

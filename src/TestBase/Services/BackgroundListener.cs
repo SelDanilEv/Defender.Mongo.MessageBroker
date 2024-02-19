@@ -18,6 +18,9 @@ public class BackgroundListener : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await _consumer.SubscribeAsync<TextMessage>((text) => Log.AddLog(text.Text), stoppingToken);
+        await _consumer.SubscribeAsync<TextMessage>(
+            (text) => Log.AddLog(text.Text),
+            () => DateTime.UtcNow, 
+            stoppingToken);
     }
 }

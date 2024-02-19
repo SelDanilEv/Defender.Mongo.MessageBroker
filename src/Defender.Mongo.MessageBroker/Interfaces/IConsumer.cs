@@ -10,11 +10,25 @@ public interface IConsumer
 
     Task SubscribeAsync<T>(
         Func<T, Task> action,
+        Func<DateTime>? startDateProvider,
+        CancellationToken cancellationToken = default)
+            where T : ITopicMessage, new();
+
+    Task SubscribeAsync<T>(
+        Func<T, Task> action,
+        Func<Task<DateTime>>? startDateProvider,
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new();
 
     Task SubscribeAsync<T>(
         Action<T> action,
+        Func<DateTime>? startDateProvider,
+        CancellationToken cancellationToken = default)
+            where T : ITopicMessage, new();
+
+    Task SubscribeAsync<T>(
+        Action<T> action,
+        Func<Task<DateTime>>? startDateProvider,
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new();
 }

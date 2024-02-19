@@ -27,26 +27,18 @@ internal class MongoMessageBroker : IMessageBroker
     public async Task SubscribeAsync<T>(
         BrokerRequest request,
         Func<T, Task> action,
+        Func<Task<DateTime>>? fromDateTime = null,
         CancellationToken cancellationToken = default)
         where T : ITopicMessage, new()
     {
-        await SubscribeInternalAsync<T>(request, async document =>
-        {
-            await action(document);
-        }, cancellationToken);
-    }
-
-    public async Task SubscribeAsync<T>(
-        BrokerRequest request,
-        Action<T> action,
-        CancellationToken cancellationToken = default)
-        where T : ITopicMessage, new()
-    {
-        await SubscribeInternalAsync<T>(request, document =>
-        {
-            action(document);
-            return Task.CompletedTask;
-        }, cancellationToken);
+        await SubscribeInternalAsync<T>(
+            request,
+            async document =>
+            {
+                await action(document);
+            },
+            fromDateTime,
+            cancellationToken);
     }
 
     public async Task PublsihAsync<T>(
@@ -65,6 +57,7 @@ internal class MongoMessageBroker : IMessageBroker
     private async Task SubscribeInternalAsync<T>(
     BrokerRequest request,
     Func<T, Task> action,
+    Func<Task<DateTime>>? fromDateTime,
     CancellationToken cancellationToken)
     where T : ITopicMessage, new()
     {
@@ -76,6 +69,9 @@ internal class MongoMessageBroker : IMessageBroker
         };
 
         var lastInsertDate = DateTime.UtcNow;
+
+        if (fromDateTime != null)
+            lastInsertDate = await fromDateTime();
 
         var filterBuilder = Builders<T>.Filter;
 

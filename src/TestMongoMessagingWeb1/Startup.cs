@@ -1,6 +1,8 @@
 using Defender.Mongo.MessageBroker.Extensions;
 using Defender.Mongo.MessageBroker.Configuration;
 using TestBase.Services;
+using TestBase.Repositories;
+using TestBase.Model;
 
 namespace TestBase
 {
@@ -23,7 +25,9 @@ namespace TestBase
             services.Configure<PublisherOptions>(
                 configuration.GetSection(nameof(PublisherOptions)));
 
-            services.AddHostedService<BackgroundListener>();
+            services.AddSingleton<TestRepository<TextMessage>>();
+
+            services.AddHostedService<SaveListener>();
             //services.AddHostedService<BackgroundPublisher>();
             services.AddTransient<MessagingService>();
 

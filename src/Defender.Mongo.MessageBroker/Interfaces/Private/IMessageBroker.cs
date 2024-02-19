@@ -14,12 +14,7 @@ internal interface IMessageBroker
     Task SubscribeAsync<T>(
         BrokerRequest request,
         Func<T, Task> action,
-        CancellationToken cancellationToken = default)
-            where T : ITopicMessage, new();
-
-    Task SubscribeAsync<T>(
-        BrokerRequest request,
-        Action<T> action,
+        Func<Task<DateTime>>? fromDateTime = null,
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new();
 }
