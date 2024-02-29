@@ -81,7 +81,9 @@ internal class MongoMessageBroker : IMessageBroker
 
             if (request.MessageType != string.Empty)
             {
-                filter = filterBuilder.And(filter, filterBuilder.Eq(x => x.Type, request.MessageType));
+                filter = filterBuilder.And(
+                    filter, 
+                    filterBuilder.Eq(x => x.Type, request.MessageType));
             }
 
             try

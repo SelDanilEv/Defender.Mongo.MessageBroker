@@ -1,12 +1,13 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Models.ProcessedEvent;
+using Defender.Mongo.MessageBroker.Helpers;
+using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace TestBase.Repositories
 {
-    public class TestRepository<T> where T : IProcessedEvent
+    public class TestRepository<T> where T : ITopicMessage
     {
         private readonly MongoClient _client;
         private readonly IMongoDatabase _database;
@@ -36,10 +37,7 @@ namespace TestBase.Repositories
 
         public async Task<T> GetLast()
         {
-            var filter = Builders<T>.Filter.Empty;
-            var sort = Builders<T>.Sort.Descending(x => x.ProcessedDateTime);
-
-            return await _collection.Find(filter).Sort(sort).Limit(1).FirstOrDefaultAsync(); ;
+            return await _collection.GetLastProccedEvent();
         }
     }
 }

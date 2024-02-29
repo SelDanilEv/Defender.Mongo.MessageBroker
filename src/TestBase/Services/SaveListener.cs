@@ -40,7 +40,7 @@ public class SaveListener : BackgroundService
                     return DateTime.MinValue.AddMicroseconds(1);
                 }
 
-                return lastRecord?.ProcessedDateTime ?? DateTime.UtcNow;
+                return lastRecord?.InsertedDateTime ?? DateTime.UtcNow;
             },
             stoppingToken);
     }

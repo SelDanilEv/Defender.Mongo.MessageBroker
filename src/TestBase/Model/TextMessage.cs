@@ -1,9 +1,9 @@
-﻿using Defender.Mongo.MessageBroker.Models.ProcessedEvent;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
+﻿using Defender.Mongo.MessageBroker.Models.TopicMessage;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace TestBase.Model;
 
-public class TextMessage : BaseTopicMessage, IProcessedEvent
+public class TextMessage : BaseTopicMessage
 {
     public TextMessage()
     {
@@ -13,6 +13,9 @@ public class TextMessage : BaseTopicMessage, IProcessedEvent
     {
         Text = text;
     }
+
+    [BsonId]
+    public Guid Id { get; set; }
 
     public string Text { get; set; }
 
