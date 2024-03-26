@@ -5,10 +5,11 @@ namespace Defender.Mongo.MessageBroker.Helpers
 {
     public static class EventHelper
     {
-        public static async Task<T> GetLastProccedEvent<T>(this IMongoCollection<T> collection)
+        public static async Task<T> GetLastProccedEvent<T>(
+            this IMongoCollection<T> collection, FilterDefinition<T>? filter = null)
             where T : ITopicMessage
         {
-            var filter = Builders<T>.Filter.Empty;
+            filter ??= Builders<T>.Filter.Empty;
             var sort = Builders<T>.Sort.Descending(x => x.InsertedDateTime);
 
             var lastProccedEvent = await collection

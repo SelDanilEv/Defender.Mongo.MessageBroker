@@ -75,7 +75,7 @@ internal class MongoMessageBroker : IMessageBroker
 
         var filterBuilder = Builders<T>.Filter;
 
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             var filter = filterBuilder.Gt(x => x.InsertedDateTime, lastInsertDate);
 
@@ -97,20 +97,14 @@ internal class MongoMessageBroker : IMessageBroker
                     });
                 }
             }
-            catch (FormatException ex)
-            {
-                throw;
-            }
-            catch (MongoException ex) when (ShouldKeepTrying(ex))
+            catch (Exception ex) when (ShouldKeepTrying(ex))
             {
                 //just keep trying reconnect
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 throw;
             }
-
-            if (cancellationToken.IsCancellationRequested) break;
         }
     }
 
@@ -163,9 +157,11 @@ internal class MongoMessageBroker : IMessageBroker
 
     private string GetCollectionNameByTopic(string topic) => $"topic-{topic}";
 
-    private bool ShouldKeepTrying(MongoException ex)
+    private bool ShouldKeepTrying(Exception ex)
     {
-        return ex is MongoConnectionException || ex is MongoConnectionPoolPausedException;
+        return ex is MongoConnectionException
+            || ex is MongoConnectionPoolPausedException
+            || ex is TimeoutException;
     }
 
 }
