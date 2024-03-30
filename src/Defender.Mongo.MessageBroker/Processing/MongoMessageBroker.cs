@@ -47,6 +47,10 @@ internal class MongoMessageBroker : IMessageBroker
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new()
     {
+        if (request == null
+            || request.TopicName == null
+            || request.MessageType == null) throw new ArgumentNullException(nameof(request));
+
         var _mongoCollection = await GetCollectionAsync<T>(request.TopicName);
 
         PrepareModel(model, request.MessageType);
@@ -61,6 +65,10 @@ internal class MongoMessageBroker : IMessageBroker
     CancellationToken cancellationToken)
     where T : ITopicMessage, new()
     {
+        if (request == null
+            || request.TopicName == null)
+            throw new ArgumentNullException(nameof(request));
+
         var _mongoCollection = await GetCollectionAsync<T>(request.TopicName);
 
         var options = new FindOptions<T>
@@ -82,7 +90,7 @@ internal class MongoMessageBroker : IMessageBroker
             if (request.MessageType != string.Empty)
             {
                 filter = filterBuilder.And(
-                    filter, 
+                    filter,
                     filterBuilder.Eq(x => x.Type, request.MessageType));
             }
 
@@ -101,7 +109,7 @@ internal class MongoMessageBroker : IMessageBroker
             {
                 //just keep trying reconnect
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }

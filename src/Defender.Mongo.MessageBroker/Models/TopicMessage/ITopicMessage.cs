@@ -6,6 +6,6 @@ namespace Defender.Mongo.MessageBroker.Models.TopicMessage
     {
         [BsonRepresentation(MongoDB.Bson.BsonType.DateTime)]
         public DateTime InsertedDateTime { get; set; }
-        public string Type { get; set; }
+        public string? Type { get; set; }
     }
 }
