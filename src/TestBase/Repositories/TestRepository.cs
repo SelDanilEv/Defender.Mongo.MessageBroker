@@ -37,7 +37,7 @@ namespace TestBase.Repositories
 
         public async Task<T> GetLast()
         {
-            return await _collection.GetLastProccedEvent();
+            return await _collection.GetLastProceedEvent();
         }
     }
 }
