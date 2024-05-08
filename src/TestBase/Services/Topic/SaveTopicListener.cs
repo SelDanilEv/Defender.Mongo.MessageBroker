@@ -1,18 +1,23 @@
 ﻿using Defender.Mongo.MessageBroker.Interfaces;
+using Defender.Mongo.MessageBroker.Interfaces.Topic;
+using Defender.Mongo.MessageBroker.Models;
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Hosting;
 using TestBase.Model;
+using TestBase.Model.Queue;
+using TestBase.Model.Topic;
 using TestBase.Repositories;
+using TextMessage = TestBase.Model.Topic.TextMessage;
 
-namespace TestBase.Services;
+namespace TestBase.Services.Topic;
 
-public class SaveListener : BackgroundService
+public class SaveTopicListener : BackgroundService
 {
-    private readonly IConsumer _consumer;
+    private readonly ITopicConsumer _consumer;
     private readonly TestRepository<TextMessage> _testRepository;
 
-    public SaveListener(
-        IConsumer consumer,
+    public SaveTopicListener(
+        ITopicConsumer consumer,
         TestRepository<TextMessage> testRepository)
     {
         _consumer = consumer;
@@ -24,7 +29,7 @@ public class SaveListener : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await _consumer.SubscribeAsync<TextMessage>(
+        await _consumer.SubscribeTopicAsync<TextMessage>(
             async (text) =>
             {
                 Log.AddLog(text.Text);

@@ -1,8 +1,8 @@
-﻿namespace Defender.Mongo.MessageBroker.Models.TopicMessage
+﻿using Defender.Mongo.MessageBroker.Models.Base;
+
+namespace Defender.Mongo.MessageBroker.Models.TopicMessage
 {
-    public abstract class BaseTopicMessage : ITopicMessage
+    public abstract class BaseTopicMessage : BaseMessage, ITopicMessage
     {
-        public DateTime InsertedDateTime { get; set; }
-        public string? Type { get; set; }
     }
 }

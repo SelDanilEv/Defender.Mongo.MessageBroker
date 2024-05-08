@@ -1,6 +1,7 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Interfaces;
 using Defender.Mongo.MessageBroker.Interfaces.Private;
+using Defender.Mongo.MessageBroker.Interfaces.Queue;
+using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Defender.Mongo.MessageBroker.Processing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,9 +17,11 @@ public static class MongoMessageBrokerExtensions
 
         services.AddSingleton<IMessageBroker, MongoMessageBroker>();
 
-        services.AddTransient<IProducer, MessageProcessor>();
+        services.AddTransient<ITopicProducer, TopicMessageProcessor>();
+        services.AddTransient<ITopicConsumer, TopicMessageProcessor>();
 
-        services.AddTransient<IConsumer, MessageProcessor>();
+        services.AddTransient<IQueueProducer, QueueMessageProcessor>();
+        services.AddTransient<IQueueConsumer, QueueMessageProcessor>();
 
         return services;
     }

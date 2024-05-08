@@ -1,11 +1,8 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using Defender.Mongo.MessageBroker.Models.Base;
 
 namespace Defender.Mongo.MessageBroker.Models.TopicMessage
 {
-    public interface ITopicMessage
+    public interface ITopicMessage : IBaseMessage
     {
-        [BsonRepresentation(MongoDB.Bson.BsonType.DateTime)]
-        public DateTime InsertedDateTime { get; set; }
-        public string? Type { get; set; }
     }
 }

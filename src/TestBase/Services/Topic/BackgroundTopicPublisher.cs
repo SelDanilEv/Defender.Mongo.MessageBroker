@@ -1,18 +1,20 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
 using Defender.Mongo.MessageBroker.Interfaces;
+using Defender.Mongo.MessageBroker.Interfaces.Topic;
+using Defender.Mongo.MessageBroker.Models;
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using TestBase.Model;
+using TestBase.Model.Topic;
 
-namespace TestBase.Services;
+namespace TestBase.Services.Topic;
 
-public class BackgroundPublisher : BackgroundService
+public class BackgroundTopicPublisher : BackgroundService
 {
-    private readonly IProducer _producer;
+    private readonly ITopicProducer _producer;
     private readonly PublisherOptions _options;
 
-    public BackgroundPublisher(IProducer producer, IOptions<PublisherOptions> options)
+    public BackgroundTopicPublisher(ITopicProducer producer, IOptions<PublisherOptions> options)
     {
         _producer = producer.SetTopic(Topics.TextTopic);
         _producer = producer.SetMessageType(MessageType.ClassName);
@@ -26,7 +28,7 @@ public class BackgroundPublisher : BackgroundService
         int i = 0;
         while (!stoppingToken.IsCancellationRequested)
         {
-            await _producer.PublishAsync<TextMessage>(
+            await _producer.PublishTopicAsync(
                 new TextMessage(
                     $"{DateTime.UtcNow.ToShortDateString()}-{i}-{_options.MessageText}"));
             Thread.Sleep(_options.SleepTimeoutMs);

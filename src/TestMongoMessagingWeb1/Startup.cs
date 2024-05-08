@@ -1,10 +1,12 @@
 using Defender.Mongo.MessageBroker.Extensions;
 using Defender.Mongo.MessageBroker.Configuration;
-using TestBase.Services;
 using TestBase.Repositories;
-using TestBase.Model;
+using TestBase.Services.Topic;
+using TestBase.Model.Topic;
+using TestBase.Model.Queue;
+using TestBase.Services.Queue;
 
-namespace TestBase
+namespace TestMongoMessagingWeb1
 {
     public static class ConfigureServices
     {
@@ -25,10 +27,15 @@ namespace TestBase
             services.Configure<PublisherOptions>(
                 configuration.GetSection(nameof(PublisherOptions)));
 
-            services.AddSingleton<TestRepository<TextMessage>>();
+            services.AddSingleton<TestRepository<TestBase.Model.Topic.TextMessage>>();
+            services.AddSingleton<TestRepository<TestBase.Model.Queue.TextMessage>>();
 
-            services.AddHostedService<SaveListener>();
+            //services.AddHostedService<SaveTopicListener>();
             //services.AddHostedService<BackgroundPublisher>();
+            //services.AddHostedService<BackgroundQueueRetryingListener>();
+            services.AddHostedService<BackgroundQueueListener>();
+            services.AddHostedService<BackgroundQueuePublisher>();
+
             services.AddTransient<MessagingService>();
 
             return services;

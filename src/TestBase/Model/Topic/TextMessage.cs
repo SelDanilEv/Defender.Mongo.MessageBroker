@@ -1,7 +1,7 @@
 ﻿using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace TestBase.Model;
+namespace TestBase.Model.Topic;
 
 public class TextMessage : BaseTopicMessage
 {

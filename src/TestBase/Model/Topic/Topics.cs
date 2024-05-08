@@ -1,4 +1,4 @@
-﻿namespace TestBase.Model;
+﻿namespace TestBase.Model.Topic;
 
 public record Topics
 {

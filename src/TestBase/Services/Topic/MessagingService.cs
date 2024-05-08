@@ -1,14 +1,16 @@
 ﻿using Defender.Mongo.MessageBroker.Interfaces;
+using Defender.Mongo.MessageBroker.Interfaces.Topic;
+using Defender.Mongo.MessageBroker.Models;
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
-using TestBase.Model;
+using TestBase.Model.Topic;
 
-namespace TestBase.Services;
+namespace TestBase.Services.Topic;
 
 public class MessagingService
 {
-    private readonly IProducer _producer;
+    private readonly ITopicProducer _producer;
 
-    public MessagingService(IProducer producer)
+    public MessagingService(ITopicProducer producer)
     {
         _producer = producer;
 
@@ -19,6 +21,6 @@ public class MessagingService
     {
         var message = new TextMessage(text);
 
-        await _producer.PublishAsync(message);
+        await _producer.PublishTopicAsync(message);
     }
 }

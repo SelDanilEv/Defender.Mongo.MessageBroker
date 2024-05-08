@@ -1,13 +1,12 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Helpers;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
+using Defender.Mongo.MessageBroker.Models.Base;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace TestBase.Repositories
 {
-    public class TestRepository<T> where T : ITopicMessage
+    public class TestRepository<T> where T : IBaseMessage
     {
         private readonly MongoClient _client;
         private readonly IMongoDatabase _database;
@@ -37,7 +36,8 @@ namespace TestBase.Repositories
 
         public async Task<T> GetLast()
         {
-            return await _collection.GetLastProceedEvent();
+            return await _collection
+                .Find(new BsonDocument()).FirstOrDefaultAsync();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Defender.Mongo.MessageBroker.Models.TopicMessage
+﻿namespace Defender.Mongo.MessageBroker.Models
 {
     public enum MessageType
     {

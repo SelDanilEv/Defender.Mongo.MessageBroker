@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TestBase.Model;
-using TestBase.Services;
+using TestBase.Services.Topic;
 
 namespace TestMongoMessaginWeb.Controllers
 {

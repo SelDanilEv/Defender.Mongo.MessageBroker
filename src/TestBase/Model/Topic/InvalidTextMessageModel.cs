@@ -1,6 +1,6 @@
 ﻿using Defender.Mongo.MessageBroker.Models.TopicMessage;
 
-namespace TestBase.Model;
+namespace TestBase.Model.Topic;
 
 public class InvalidTextMessageModel : BaseTopicMessage
 {
