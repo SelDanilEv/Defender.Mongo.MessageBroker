@@ -1,8 +1,6 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Interfaces;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Defender.Mongo.MessageBroker.Models;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using TestBase.Model.Topic;
@@ -31,7 +29,7 @@ public class BackgroundTopicPublisher : BackgroundService
             await _producer.PublishTopicAsync(
                 new TextMessage(
                     $"{DateTime.UtcNow.ToShortDateString()}-{i}-{_options.MessageText}"));
-            Thread.Sleep(_options.SleepTimeoutMs);
+            await Task.Delay(_options.SleepTimeoutMs);
         }
     }
 }

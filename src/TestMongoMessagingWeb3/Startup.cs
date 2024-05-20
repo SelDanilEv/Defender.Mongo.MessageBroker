@@ -24,13 +24,14 @@ namespace TestBase
             });
 
             //services.AddHostedService<BackgroundTopicListener>();
-            //services.AddHostedService<BackgroundPublisher>();
+            services.AddHostedService<BackgroundTopicPublisher>();
             //services.AddTransient<MessagingService>();
 
             services.AddSingleton<TestRepository<TestBase.Model.Topic.TextMessage>>();
             services.AddSingleton<TestRepository<TestBase.Model.Queue.TextMessage>>();
 
             services.AddHostedService<BackgroundQueuePublisher>();
+            services.AddHostedService<BackgroundQueueListener>();
 
             return services;
         }

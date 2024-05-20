@@ -2,7 +2,7 @@
 
 namespace Defender.Mongo.MessageBroker.Models.TopicMessage
 {
-    public abstract class BaseTopicMessage : BaseMessage, ITopicMessage
+    public abstract record BaseTopicMessage : BaseMessage, ITopicMessage
     {
     }
 }

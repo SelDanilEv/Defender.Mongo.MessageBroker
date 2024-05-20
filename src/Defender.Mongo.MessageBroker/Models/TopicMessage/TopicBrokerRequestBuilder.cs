@@ -6,6 +6,15 @@ namespace Defender.Mongo.MessageBroker.Models
     {
         public string TopicName { get; set; } = "default";
 
+        public TopicBrokerRequest Build()
+        {
+            var result = new TopicBrokerRequest(TopicName);
+
+            base.Build(result);
+
+            return result;
+        }
+
         public TopicBrokerRequest Build<T>()
         {
             var result = new TopicBrokerRequest(TopicName);

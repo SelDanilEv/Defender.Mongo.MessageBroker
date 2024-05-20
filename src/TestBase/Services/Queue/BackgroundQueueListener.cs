@@ -16,9 +16,10 @@ public class BackgroundQueueListener : BackgroundService
         TestRepository<TextMessage> testRepository)
     {
         _testRepository = testRepository;
-        _consumer = consumer;
-
-        _consumer.SetQueue(Queues.TextQueue).SetMessageType(MessageType.ClassName);
+        _consumer = consumer.SetQueue(Queues.TextQueue)
+            .SetMessageType(MessageType.ClassName)
+            .SetMaxDocuments(1000)
+            .SetMaxByteSize(int.MaxValue);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

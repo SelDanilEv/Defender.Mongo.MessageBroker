@@ -5,19 +5,19 @@ using Defender.Mongo.MessageBroker.Models.TopicMessage;
 
 namespace Defender.Mongo.MessageBroker.Processing;
 
-internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
+internal class TopicMessageProcessor(IMessageBroker messageBroker)
+    : ITopicConsumer, ITopicProducer
 {
-    private readonly IMessageBroker _messageBroker;
-
     private TopicBrokerRequestBuilder _requestBuilder { get; set; }
-
-    public TopicMessageProcessor(IMessageBroker messageBroker)
-    {
-        _messageBroker = messageBroker;
-        _requestBuilder = new TopicBrokerRequestBuilder();
-    }
+        = new TopicBrokerRequestBuilder();
 
     #region core 
+
+    public async Task EnsureCollectionExistsAsync()
+    {
+        await messageBroker.EnsureTopicCollectionExistsAsync(_requestBuilder.Build());
+    }
+
     public async Task<T> PublishTopicAsync<T>(
         T model,
         CancellationToken cancellationToken = default)
@@ -25,7 +25,7 @@ internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        return await _messageBroker.PublishTopicAsync(
+        return await messageBroker.PublishTopicAsync(
             _requestBuilder.Build<T>(),
             model,
             cancellationToken);
@@ -37,7 +37,7 @@ internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
     CancellationToken cancellationToken = default)
         where T : ITopicMessage, new()
     {
-        await _messageBroker.SubscribeTopicAsync(
+        await messageBroker.SubscribeTopicAsync(
             _requestBuilder.Build<T>(),
             action,
             fromDateTime,
@@ -50,7 +50,7 @@ internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new()
     {
-        await _messageBroker.SubscribeTopicAsync(
+        await messageBroker.SubscribeTopicAsync(
             _requestBuilder.Build<T>(),
             action,
             MapStartDateProvider(startDateProvider),
@@ -63,7 +63,7 @@ internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new()
     {
-        await _messageBroker.SubscribeTopicAsync(
+        await messageBroker.SubscribeTopicAsync(
             _requestBuilder.Build<T>(),
             ConvertToAsyncFunc(action),
             MapStartDateProvider(startDateProvider),
@@ -76,7 +76,7 @@ internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
         CancellationToken cancellationToken = default)
             where T : ITopicMessage, new()
     {
-        await _messageBroker.SubscribeTopicAsync(
+        await messageBroker.SubscribeTopicAsync(
             _requestBuilder.Build<T>(),
             ConvertToAsyncFunc(action),
             fromDateTime,
@@ -134,6 +134,41 @@ internal class TopicMessageProcessor : ITopicConsumer, ITopicProducer
         _requestBuilder.SetMessageType(messageType);
         return this;
     }
+    #endregion
+
+    #region Capped collection settings
+
+    ITopicConsumer ITopicConsumer.SetMaxDocuments(long maxDocuments)
+    {
+        return SetMaxDocuments(maxDocuments);
+    }
+    ITopicProducer ITopicProducer.SetMaxDocuments(long maxDocuments)
+    {
+        return SetMaxDocuments(maxDocuments);
+    }
+
+    private TopicMessageProcessor SetMaxDocuments(long maxDocuments)
+    {
+        _requestBuilder.SetMaxDocuments(maxDocuments);
+        return this;
+    }
+
+
+    ITopicConsumer ITopicConsumer.SetMaxByteSize(long maxByteSize)
+    {
+        return SetMaxByteSize(maxByteSize);
+    }
+    ITopicProducer ITopicProducer.SetMaxByteSize(long maxByteSize)
+    {
+        return SetMaxByteSize(maxByteSize);
+    }
+
+    private TopicMessageProcessor SetMaxByteSize(long maxByteSize)
+    {
+        _requestBuilder.SetMaxByteSize(maxByteSize);
+        return this;
+    }
+
     #endregion
 
     #region Helpers 

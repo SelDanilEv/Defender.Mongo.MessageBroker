@@ -1,5 +1,6 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
 using Defender.Mongo.MessageBroker.Models.Base;
+using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -17,12 +18,21 @@ namespace TestBase.Repositories
             _client ??= new MongoClient(options.Value.MongoDbConnectionString);
             _database ??= _client.GetDatabase(options.Value.MongoDbDatabaseName);
 
-            _collection = _database.GetCollection<T>("test-collection");
+            var sufix = typeof(T) == typeof(Model.Topic.TextMessage) ? "2" : "1";
+
+            _collection = _database.GetCollection<T>("test-collection-" + sufix);
         }
 
         public async Task<T> Insert(T model)
         {
-            await _collection.InsertOneAsync(model);
+            try
+            {
+                await _collection.InsertOneAsync(model);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             return model;
         }

@@ -14,12 +14,9 @@ public class TextMessage : BaseTopicMessage
         Text = text;
     }
 
-    [BsonId]
-    public Guid Id { get; set; }
-
     public string Text { get; set; }
 
-    public DateTime ProcessedDateTime
+    public DateTime Timestamp
     {
         get; set;
     }

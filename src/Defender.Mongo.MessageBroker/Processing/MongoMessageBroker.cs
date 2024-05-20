@@ -19,8 +19,8 @@ internal class MongoMessageBroker : IMessageBroker
     private readonly long _maxTopicByteSize;
     private readonly long _maxQueueDocuments;
     private readonly long _maxQueueByteSize;
-    private readonly SemaphoreSlim _collectionSemaphore = new SemaphoreSlim(1, 1);
-    private readonly SemaphoreSlim _processSemaphore = new SemaphoreSlim(10, 10);
+    private readonly SemaphoreSlim _collectionSemaphore = new(1, 1);
+    private readonly SemaphoreSlim _processSemaphore = new(10, 10);
 
     public MongoMessageBroker(IOptions<MessageBrokerOptions> options)
     {
@@ -45,7 +45,7 @@ internal class MongoMessageBroker : IMessageBroker
             || request.QueueName == null
             || request.MessageType == null) throw new ArgumentNullException(nameof(request));
 
-        var _mongoCollection = await GetQueueCollectionAsync<T>(request.QueueName);
+        var _mongoCollection = await GetOrCreateQueueCollectionAsync<T>(request);
 
         PrepareModel(model, request.MessageType);
 
@@ -64,7 +64,7 @@ internal class MongoMessageBroker : IMessageBroker
             || request.QueueName == null
             || request.MessageType == null) throw new ArgumentNullException(nameof(request));
 
-        var _mongoCollection = await GetQueueCollectionAsync<T>(request.QueueName);
+        var _mongoCollection = await GetOrCreateQueueCollectionAsync<T>(request);
 
         var options = new FindOptions<T>
         {
@@ -73,17 +73,24 @@ internal class MongoMessageBroker : IMessageBroker
 
         var filter = BuildFilter<T>(request);
 
+        var processId = Guid.NewGuid();
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                using (var cursor = await _mongoCollection.FindAsync(filter, options, cancellationToken))
+                using var cursor = await _mongoCollection
+                    .FindAsync(filter, options, cancellationToken);
+
+                await cursor.ForEachAsync(async document =>
                 {
-                    await cursor.ForEachAsync(async document =>
-                    {
-                        await ProcessDocument(_mongoCollection, document, filter, action, cancellationToken);
-                    });
-                }
+                    await ProcessDocument(
+                        _mongoCollection,
+                        document,
+                        action,
+                        processId,
+                        cancellationToken);
+                }, cancellationToken: cancellationToken);
             }
             catch (Exception ex) when (ShouldKeepTrying(ex))
             {
@@ -108,35 +115,36 @@ internal class MongoMessageBroker : IMessageBroker
 
         var currentDateTime = DateTime.UtcNow;
 
-        var _mongoCollection = await GetQueueCollectionAsync<T>(request.QueueName);
+        var _mongoCollection = await GetOrCreateQueueCollectionAsync<T>(request);
 
         var options = new FindOptions<T>
         {
             CursorType = CursorType.NonTailable
         };
 
-
         var filter = BuildFilter<T>(request);
 
         filter = Builders<T>.Filter.And(filter,
             Builders<T>.Filter.Lte(x => x.InsertedDateTime, currentDateTime));
 
+        var processId = Guid.NewGuid();
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                using (var cursor = await _mongoCollection.FindAsync(filter, options, cancellationToken))
+                using var cursor = await _mongoCollection
+                    .FindAsync(filter, options, cancellationToken);
+
+                await cursor.ForEachAsync(document =>
                 {
-                    await cursor.ForEachAsync(document =>
-                    {
-                        ProcessDocument(
-                            _mongoCollection,
-                            document, 
-                            filter,
-                            action, 
-                            cancellationToken).Forget();
-                    });
-                }
+                    ProcessDocument(
+                        _mongoCollection,
+                        document,
+                        action,
+                        processId,
+                        cancellationToken).Forget();
+                }, cancellationToken: cancellationToken);
 
                 break;
             }
@@ -151,7 +159,7 @@ internal class MongoMessageBroker : IMessageBroker
         }
     }
 
-    private FilterDefinition<T> BuildFilter<T>(
+    private static FilterDefinition<T> BuildFilter<T>(
             QueueBrokerRequest request)
         where T : IQueueMessage, new()
     {
@@ -175,25 +183,35 @@ internal class MongoMessageBroker : IMessageBroker
     private async Task ProcessDocument<T>(
         IMongoCollection<T> mongoCollection,
         T document,
-        FilterDefinition<T> filter,
         Func<T, Task<bool>> action,
+        Guid processId,
         CancellationToken cancellationToken) where T : IQueueMessage, new()
     {
-        var update = Builders<T>.Update.Set(x => x.Processing, true);
+        var filter = Builders<T>.Filter.And(
+            Builders<T>.Filter.Eq(x => x.Id, document.Id),
+            Builders<T>.Filter.Eq(x => x.Processing, false),
+            Builders<T>.Filter.Eq(x => x.ProceedDateTime, DateTime.MinValue)
+            );
+        var update = Builders<T>.Update
+            .Set(x => x.Processing, true)
+            .Set(x => x.ProcessId, processId);
         var options = new FindOneAndUpdateOptions<T> { ReturnDocument = ReturnDocument.After };
 
-        document = await mongoCollection.FindOneAndUpdateAsync(filter, update, options, cancellationToken);
-
-        if (document == null || document.ProceedDateTime != DateTime.MinValue)
-        {
-            // Another service is already processing this document
-            return;
-        }
-
         var isSuccess = false;
-        await _processSemaphore.WaitAsync();
+        await _processSemaphore.WaitAsync(cancellationToken);
         try
         {
+            document = await mongoCollection
+                .FindOneAndUpdateAsync(filter, update, options, cancellationToken);
+
+            if (document == null
+                || document.ProceedDateTime != DateTime.MinValue
+                || document.ProcessId != processId)
+            {
+                // Another service is already processing this document
+                return;
+            }
+
             isSuccess = await action(document);
         }
         finally
@@ -205,16 +223,21 @@ internal class MongoMessageBroker : IMessageBroker
         if (isSuccess)
             mongoCollection.UpdateOneAsync(
                 Builders<T>.Filter.Eq(x => x.Id, document.Id),
-                Builders<T>.Update.Set(x => x.ProceedDateTime, DateTime.UtcNow)).Forget();
+                Builders<T>.Update
+                    .Set(x => x.ProceedDateTime, DateTime.UtcNow)
+                    .Set(x => x.Processing, false),
+                cancellationToken: cancellationToken).Forget();
         else
             mongoCollection.UpdateOneAsync(
                 Builders<T>.Filter.Eq(x => x.Id, document.Id),
-                Builders<T>.Update.Set(x => x.Processing, false)).Forget();
+                Builders<T>.Update.Set(x => x.Processing, false),
+                cancellationToken: cancellationToken).Forget();
     }
 
     #endregion
 
     #region topic
+
     public async Task<T> PublishTopicAsync<T>(
         TopicBrokerRequest request,
         T model,
@@ -225,7 +248,7 @@ internal class MongoMessageBroker : IMessageBroker
             || request.TopicName == null
             || request.MessageType == null) throw new ArgumentNullException(nameof(request));
 
-        var _mongoCollection = await GetTopicCollectionAsync<T>(request.TopicName);
+        var _mongoCollection = await GetOrCreateTopicCollectionAsync<T>(request);
 
         PrepareModel(model, request.MessageType);
 
@@ -245,7 +268,7 @@ internal class MongoMessageBroker : IMessageBroker
             || request.TopicName == null)
             throw new ArgumentNullException(nameof(request));
 
-        var _mongoCollection = await GetTopicCollectionAsync<T>(request.TopicName);
+        var _mongoCollection = await GetOrCreateTopicCollectionAsync<T>(request);
 
         var options = new FindOptions<T>
         {
@@ -272,14 +295,14 @@ internal class MongoMessageBroker : IMessageBroker
 
             try
             {
-                using (var cursor = await _mongoCollection.FindAsync(filter, options, cancellationToken))
+                using var cursor = await _mongoCollection.FindAsync(
+                    filter, options, cancellationToken);
+
+                await cursor.ForEachAsync(async document =>
                 {
-                    await cursor.ForEachAsync(async document =>
-                    {
-                        lastInsertDate = document.InsertedDateTime;
-                        await action(document);
-                    });
-                }
+                    lastInsertDate = document.InsertedDateTime;
+                    await action(document);
+                });
             }
             catch (Exception ex) when (ShouldKeepTrying(ex))
             {
@@ -295,31 +318,69 @@ internal class MongoMessageBroker : IMessageBroker
     #endregion topic
 
     #region Collections
-    private async Task<IMongoCollection<T>> GetTopicCollectionAsync<T>(string topic) where T : IBaseMessage, new()
-    {
-        var collectionName = GetCollectionNameByTopicName(topic);
 
-        return await GetCollectionAsync<T>(collectionName);
+    public async Task EnsureTopicCollectionExistsAsync(BaseBrokerRequest request)
+    {
+        var name = request.GetName;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        var collectionName = GetCollectionNameByTopicName(name);
+
+        await CreateCollectionIfNotExists(
+            collectionName,
+            request?.MaxDocuments ?? _maxTopicDocuments,
+            request?.MaxByteSize ?? _maxTopicByteSize);
     }
 
-    private async Task<IMongoCollection<T>> GetQueueCollectionAsync<T>(string queue) where T : IQueueMessage, new()
+    public async Task EnsureQueueCollectionExistsAsync(BaseBrokerRequest request)
     {
-        var collectionName = GetCollectionNameByQueueName(queue);
+        var name = request.GetName;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
 
-        return await GetCollectionAsync<T>(collectionName);
+        var collectionName = GetCollectionNameByQueueName(name);
+
+        await CreateCollectionIfNotExists(
+            collectionName,
+            request?.MaxDocuments ?? _maxTopicDocuments,
+            request?.MaxByteSize ?? _maxTopicByteSize);
     }
 
-
-    private async Task<IMongoCollection<T>> GetCollectionAsync<T>(string collectionName) where T : IBaseMessage, new()
+    private async Task<IMongoCollection<T>> GetOrCreateTopicCollectionAsync<T>(
+        TopicBrokerRequest request)
+        where T : ITopicMessage, new()
     {
-        var mongoCollection = await GetCollection<T>(collectionName);
+        request.SetName(GetCollectionNameByTopicName(request.TopicName));
+
+        return await GetOrCreateCollectionAsync<T>(request);
+    }
+
+    private async Task<IMongoCollection<T>> GetOrCreateQueueCollectionAsync<T>(
+        QueueBrokerRequest request)
+        where T : IQueueMessage, new()
+    {
+        request.SetName(GetCollectionNameByQueueName(request.QueueName));
+
+        return await GetOrCreateCollectionAsync<T>(request);
+    }
+
+    private async Task<IMongoCollection<T>> GetOrCreateCollectionAsync<T>(
+        BaseBrokerRequest request)
+        where T : IBaseMessage, new()
+    {
+        var mongoCollection = await GetOrCreateCollection<T>(request);
 
         await _collectionSemaphore.WaitAsync();
         try
         {
             if (await mongoCollection.EstimatedDocumentCountAsync() == 0)
             {
-                await CreateInitRecord(mongoCollection);
+                await CreateIndexes(mongoCollection);
             }
         }
         finally
@@ -330,31 +391,46 @@ internal class MongoMessageBroker : IMessageBroker
         return mongoCollection;
     }
 
-    private async Task<IMongoCollection<T>> GetCollection<T>(string collectionName)
+    private async Task<IMongoCollection<T>> GetOrCreateCollection<T>(
+        BaseBrokerRequest request)
+    {
+        await CreateCollectionIfNotExists(
+            request.GetName,
+            request.MaxDocuments ?? (typeof(T) == typeof(ITopicMessage)
+                ? _maxTopicDocuments
+                : _maxQueueDocuments),
+            request.MaxByteSize ?? (typeof(T) == typeof(ITopicMessage)
+                ? _maxTopicByteSize
+                : _maxQueueByteSize));
+
+        return _database.GetCollection<T>(request.GetName);
+    }
+
+    private async Task CreateCollectionIfNotExists(
+        string collectionName,
+        long maxDocuments,
+        long maxByteSize)
     {
         if (!await CollectionExistsAsync(collectionName))
         {
-            var createCollectionOptions = new CreateCollectionOptions();
-            createCollectionOptions.Capped = true;
-            createCollectionOptions.MaxDocuments = typeof(T) == typeof(ITopicMessage) ? _maxTopicDocuments : _maxQueueDocuments;
-            createCollectionOptions.MaxSize = typeof(T) == typeof(ITopicMessage) ? _maxTopicByteSize : _maxQueueByteSize;
+            var createCollectionOptions = new CreateCollectionOptions
+            {
+                Capped = true,
+                MaxDocuments = maxDocuments,
+                MaxSize = maxByteSize
+            };
 
             await _database.CreateCollectionAsync(collectionName, createCollectionOptions);
         }
-
-        return _database.GetCollection<T>(collectionName);
     }
 
-
-    private async Task CreateInitRecord<T>(IMongoCollection<T> mongoCollection) where T : IBaseMessage, new()
+    private static async Task CreateIndexes<T>(IMongoCollection<T> mongoCollection)
+        where T : IBaseMessage, new()
     {
-        var initMessage = new T();
-        initMessage.InsertedDateTime = DateTime.MinValue;
-        await mongoCollection.InsertOneAsync(initMessage);
-
         var index = Builders<T>.IndexKeys.Ascending(f => f.InsertedDateTime);
         var indexOptions = new CreateIndexOptions { Background = true };
-        await mongoCollection.Indexes.CreateOneAsync(new CreateIndexModel<T>(index, indexOptions));
+        await mongoCollection.Indexes.CreateOneAsync(
+            new CreateIndexModel<T>(index, indexOptions));
 
         if (mongoCollection is IMongoCollection<IQueueMessage> queueMessageCollection)
         {
@@ -362,32 +438,37 @@ internal class MongoMessageBroker : IMessageBroker
         }
     }
 
-    private async Task CreateQueueMessageIndex<T>(IMongoCollection<T> mongoCollection) where T : IQueueMessage
+    private static async Task CreateQueueMessageIndex<T>(IMongoCollection<T> mongoCollection)
+        where T : IQueueMessage
     {
-        var procc = Builders<T>.IndexKeys.Ascending(f => f.ProceedDateTime);
-        var indexOptions2 = new CreateIndexOptions { Background = true };
-        await mongoCollection.Indexes.CreateOneAsync(new CreateIndexModel<T>(procc, indexOptions2));
+        var proccIndex = Builders<T>.IndexKeys.Ascending(f => f.ProceedDateTime);
+        var indexOptions = new CreateIndexOptions { Background = true };
+        await mongoCollection.Indexes.CreateOneAsync(
+            new CreateIndexModel<T>(proccIndex, indexOptions));
     }
 
     private async Task<bool> CollectionExistsAsync(string collectionName)
     {
         var filter = new BsonDocument("name", collectionName);
-        var collections = await _database.ListCollectionsAsync(new ListCollectionsOptions { Filter = filter });
+        var collections = await _database.ListCollectionsAsync(
+            new ListCollectionsOptions { Filter = filter });
         return await collections.AnyAsync();
     }
 
-    private string GetCollectionNameByTopicName(string topic) => $"topic-{topic}";
-    private string GetCollectionNameByQueueName(string topic) => $"queue-{topic}";
+    private static string GetCollectionNameByTopicName(string topic) => $"topic-{topic}";
+    private static string GetCollectionNameByQueueName(string topic) => $"queue-{topic}";
+
     #endregion collections
 
-    private void PrepareModel<T>(T model, string messageType) where T : IBaseMessage, new()
+    private static void PrepareModel<T>(T model, string messageType)
+        where T : IBaseMessage, new()
     {
-        if (model == null) model = new T();
+        model ??= new T();
         model.InsertedDateTime = DateTime.UtcNow;
         model.Type = messageType;
     }
 
-    private bool ShouldKeepTrying(Exception ex)
+    private static bool ShouldKeepTrying(Exception ex)
     {
         return ex is MongoConnectionException
             || ex is MongoConnectionPoolPausedException

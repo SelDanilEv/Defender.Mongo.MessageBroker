@@ -6,9 +6,9 @@ namespace Defender.Mongo.MessageBroker.Models
     {
         public TopicBrokerRequest(string? topicName)
         {
-            TopicName = topicName;
+            base.Name = topicName;
         }
 
-        public string? TopicName { get; set; }
+        public string? TopicName => base.Name;
     }
 }

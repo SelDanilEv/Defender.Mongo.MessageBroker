@@ -33,7 +33,7 @@ public class SaveTopicListener : BackgroundService
             async (text) =>
             {
                 Log.AddLog(text.Text);
-                text.ProcessedDateTime = DateTime.UtcNow;
+                text.Timestamp = DateTime.UtcNow;
                 await _testRepository.Insert(text);
             },
             async () =>

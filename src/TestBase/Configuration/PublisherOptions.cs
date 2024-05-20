@@ -3,5 +3,5 @@
 public sealed record PublisherOptions
 {
     public string? MessageText { get; set; } = "Default text";
-    public int SleepTimeoutMs { get; set; } = 10;
+    public int SleepTimeoutMs { get; set; } = 100;
 }

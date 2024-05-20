@@ -2,7 +2,7 @@
 
 namespace Defender.Mongo.MessageBroker.Models.Base
 {
-    public abstract class BaseMessage : IBaseMessage
+    public abstract record BaseMessage : IBaseMessage
     {
         [BsonId]
         public Guid Id { get; set; }

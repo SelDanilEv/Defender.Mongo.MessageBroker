@@ -14,23 +14,34 @@ public class BackgroundQueuePublisher : BackgroundService
 
     public BackgroundQueuePublisher(IQueueProducer producer, IOptions<PublisherOptions> options)
     {
-        _producer = producer.SetQueue(Queues.TextQueue);
-        _producer = producer.SetMessageType(MessageType.ClassName);
+        _producer = producer.SetQueue(Queues.TextQueue)
+            .SetMessageType(MessageType.ClassName)
+            .SetMaxDocuments(1000)
+            .SetMaxByteSize(int.MaxValue);
 
         _options = options.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        int i = 100;
+        int i = 1000;
         while (!stoppingToken.IsCancellationRequested)
         {
-            _producer.PublishQueueAsync(
-                new TextMessage(
-                    //$"{DateTime.UtcNow.ToShortDateString()}-{i++}-{_options.MessageText}"));                    
-                    $"{i++}"));
-
-            await Task.Delay(_options.SleepTimeoutMs, stoppingToken);
+            try
+            {
+                _producer.PublishQueueAsync(
+                    new TextMessage(
+                        //$"{DateTime.UtcNow.ToShortDateString()}-{i++}-{_options.MessageText}"));                    
+                        $"{i++}"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                await Task.Delay(_options.SleepTimeoutMs, stoppingToken);
+            }
         }
     }
 }

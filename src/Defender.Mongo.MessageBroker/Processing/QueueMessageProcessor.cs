@@ -1,17 +1,24 @@
 ﻿using Defender.Mongo.MessageBroker.Interfaces.Private;
 using Defender.Mongo.MessageBroker.Interfaces.Queue;
+using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Defender.Mongo.MessageBroker.Models;
 using Defender.Mongo.MessageBroker.Models.QueueMessage;
 
 namespace Defender.Mongo.MessageBroker.Processing;
 
-internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsumer, IQueueProducer
+internal class QueueMessageProcessor(IMessageBroker messageBroker) 
+    : IQueueConsumer, IQueueProducer
 {
-    private readonly IMessageBroker _messageBroker = messageBroker;
-
-    private QueueBrokerRequestBuilder RequestBuilder { get; set; } = new QueueBrokerRequestBuilder();
+    private QueueBrokerRequestBuilder _requestBuilder { get; set; } = 
+        new QueueBrokerRequestBuilder();
 
     #region core 
+
+    public async Task EnsureCollectionExistsAsync()
+    {
+        await messageBroker.EnsureQueueCollectionExistsAsync(_requestBuilder.Build());
+    }
+
     public async Task<T> PublishQueueAsync<T>(
         T model,
         CancellationToken cancellationToken = default)
@@ -19,8 +26,8 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        return await _messageBroker.PublishQueueAsync(
-            RequestBuilder.Build<T>(),
+        return await messageBroker.PublishQueueAsync(
+            _requestBuilder.Build<T>(),
             model,
             cancellationToken);
     }
@@ -30,8 +37,8 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
         CancellationToken cancellationToken = default)
         where T : IQueueMessage, new()
     {
-        await _messageBroker.SubscribeQueueAsync(
-            RequestBuilder.Build<T>(),
+        await messageBroker.SubscribeQueueAsync(
+            _requestBuilder.Build<T>(),
             action,
             cancellationToken);
     }
@@ -41,8 +48,8 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
         CancellationToken cancellationToken = default)
             where T : IQueueMessage, new()
     {
-        await _messageBroker.SubscribeQueueAsync(
-            RequestBuilder.Build<T>(),
+        await messageBroker.SubscribeQueueAsync(
+            _requestBuilder.Build<T>(),
             ConvertToAsyncFunc(action),
             cancellationToken);
     }
@@ -53,8 +60,8 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
         CancellationToken cancellationToken = default)
         where T : IQueueMessage, new()
     {
-        await _messageBroker.CheckQueueAsync(
-            RequestBuilder.Build<T>(),
+        await messageBroker.CheckQueueAsync(
+            _requestBuilder.Build<T>(),
             action,
             cancellationToken);
     }
@@ -64,11 +71,12 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
         CancellationToken cancellationToken = default)
             where T : IQueueMessage, new()
     {
-        await _messageBroker.CheckQueueAsync(
-            RequestBuilder.Build<T>(),
+        await messageBroker.CheckQueueAsync(
+            _requestBuilder.Build<T>(),
             ConvertToAsyncFunc(action),
             cancellationToken);
     }
+
     #endregion
 
     #region Queue 
@@ -84,7 +92,7 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
 
     private QueueMessageProcessor SetQueue(string queueName)
     {
-        RequestBuilder.SetQueue(queueName);
+        _requestBuilder.SetQueue(queueName);
         return this;
     }
     #endregion
@@ -112,15 +120,52 @@ internal class QueueMessageProcessor(IMessageBroker messageBroker) : IQueueConsu
 
     private QueueMessageProcessor SetMessageType(string messageType)
     {
-        RequestBuilder.SetMessageType(messageType);
+        _requestBuilder.SetMessageType(messageType);
         return this;
     }
 
     private QueueMessageProcessor SetMessageType(MessageType messageType)
     {
-        RequestBuilder.SetMessageType(messageType);
+        _requestBuilder.SetMessageType(messageType);
         return this;
     }
+    #endregion
+
+    #region Capped collection settings
+
+    IQueueConsumer IQueueConsumer.SetMaxDocuments(long maxDocuments)
+    {
+        return SetMaxDocuments(maxDocuments);
+    }
+
+    IQueueProducer IQueueProducer.SetMaxDocuments(long maxDocuments)
+    {
+        return SetMaxDocuments(maxDocuments);
+    }
+
+    private QueueMessageProcessor SetMaxDocuments(long maxDocuments)
+    {
+        _requestBuilder.SetMaxDocuments(maxDocuments);
+        return this;
+    }
+
+
+    IQueueConsumer IQueueConsumer.SetMaxByteSize(long maxByteSize)
+    {
+        return SetMaxByteSize(maxByteSize);
+    }
+
+    IQueueProducer IQueueProducer.SetMaxByteSize(long maxByteSize)
+    {
+        return SetMaxByteSize(maxByteSize);
+    }
+
+    private QueueMessageProcessor SetMaxByteSize(long maxByteSize)
+    {
+        _requestBuilder.SetMaxByteSize(maxByteSize);
+        return this;
+    }
+
     #endregion
 
     #region Helpers 

@@ -30,11 +30,11 @@ namespace TestMongoMessagingWeb1
             services.AddSingleton<TestRepository<TestBase.Model.Topic.TextMessage>>();
             services.AddSingleton<TestRepository<TestBase.Model.Queue.TextMessage>>();
 
-            //services.AddHostedService<SaveTopicListener>();
+            services.AddHostedService<SaveTopicListener>();
             //services.AddHostedService<BackgroundPublisher>();
             //services.AddHostedService<BackgroundQueueRetryingListener>();
             services.AddHostedService<BackgroundQueueListener>();
-            services.AddHostedService<BackgroundQueuePublisher>();
+            //services.AddHostedService<BackgroundQueuePublisher>();
 
             services.AddTransient<MessagingService>();
 

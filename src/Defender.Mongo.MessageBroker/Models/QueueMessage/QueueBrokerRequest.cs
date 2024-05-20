@@ -6,9 +6,9 @@ namespace Defender.Mongo.MessageBroker.Models
     {
         public QueueBrokerRequest(string? queueName)
         {
-            QueueName = queueName;
+            Name = queueName;
         }
 
-        public string? QueueName { get; set; }
+        public string? QueueName => base.Name;
     }
 }

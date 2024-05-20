@@ -27,7 +27,7 @@ namespace TestBase
             services.AddSingleton<TestRepository<TestBase.Model.Topic.TextMessage>>();
             services.AddSingleton<TestRepository<TestBase.Model.Queue.TextMessage>>();
 
-            //services.AddHostedService<BackgroundListener>();
+            services.AddHostedService<BackgroundTopicListener>();
             //services.AddHostedService<BackgroundTopicPublisher>();
             services.AddHostedService<BackgroundQueueListener>();
             services.AddHostedService<BackgroundQueueRetryingListener>();

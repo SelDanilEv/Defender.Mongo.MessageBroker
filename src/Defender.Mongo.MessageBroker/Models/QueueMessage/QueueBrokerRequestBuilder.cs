@@ -6,6 +6,15 @@ namespace Defender.Mongo.MessageBroker.Models
     {
         public string QueueName { get; set; } = "default";
 
+        public QueueBrokerRequest Build()
+        {
+            var result = new QueueBrokerRequest(QueueName);
+
+            base.Build(result);
+
+            return result;
+        }
+
         public QueueBrokerRequest Build<T>()
         {
             var result = new QueueBrokerRequest(QueueName);
