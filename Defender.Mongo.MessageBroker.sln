@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestBase", "TestBase\TestBase.csproj", "{1AC1D288-C2BC-46F3-B0B7-35915DAEAF19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestBase", "src\TestBase\TestBase.csproj", "{1AC1D288-C2BC-46F3-B0B7-35915DAEAF19}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMongoMessagingWeb1", "TestMongoMessagingWeb1\TestMongoMessagingWeb1.csproj", "{01343AF1-51B0-4A97-8CDE-16E26B030B17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMongoMessagingWeb1", "src\TestMongoMessagingWeb1\TestMongoMessagingWeb1.csproj", "{01343AF1-51B0-4A97-8CDE-16E26B030B17}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMongoMessagingWeb2", "TestMongoMessagingWeb2\TestMongoMessagingWeb2.csproj", "{0FCE3609-6281-46CB-BACB-1980ACAEF915}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMongoMessagingWeb2", "src\TestMongoMessagingWeb2\TestMongoMessagingWeb2.csproj", "{0FCE3609-6281-46CB-BACB-1980ACAEF915}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMongoMessagingWeb3", "TestMongoMessagingWeb3\TestMongoMessagingWeb3.csproj", "{E5DC4066-8D30-4C5C-B6D9-20C08F6216F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestMongoMessagingWeb3", "src\TestMongoMessagingWeb3\TestMongoMessagingWeb3.csproj", "{E5DC4066-8D30-4C5C-B6D9-20C08F6216F1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Defender.Mongo.MessageBroker", "Defender.Mongo.MessageBroker\Defender.Mongo.MessageBroker.csproj", "{18D38183-116A-46C5-B36A-D7B68EB80F18}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Defender.Mongo.MessageBroker", "src\Defender.Mongo.MessageBroker\Defender.Mongo.MessageBroker.csproj", "{18D38183-116A-46C5-B36A-D7B68EB80F18}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -19,22 +19,23 @@ namespace TestMongoMessagingWeb1
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
-            services.AddMongoMessageBrokerServices(opt =>
-            {
-                configuration.GetSection(nameof(MessageBrokerOptions)).Bind(opt);
-            });
+            services.RegisterMessageBroker(configuration);
 
             services.Configure<PublisherOptions>(
                 configuration.GetSection(nameof(PublisherOptions)));
+            services.Configure<TestDBOptions>(
+                configuration.GetSection(nameof(TestDBOptions)));
 
-            services.AddSingleton<TestRepository<TestBase.Model.Topic.TextMessage>>();
-            services.AddSingleton<TestRepository<TestBase.Model.Queue.TextMessage>>();
+            services.AddSingleton<TestRepository<TextMessageT>>();
+            services.AddSingleton<TestRepository<TextMessageQ>>();
 
-            services.AddHostedService<SaveTopicListener>();
-            //services.AddHostedService<BackgroundPublisher>();
-            //services.AddHostedService<BackgroundQueueRetryingListener>();
+            //services.AddHostedService<SaveTopicListener>();
+            services.AddHostedService<BackgroundTopicListener>();
+            services.AddHostedService<BackgroundTopicPublisher>();
+
+            services.AddHostedService<BackgroundQueueRetryingListener>();
             services.AddHostedService<BackgroundQueueListener>();
-            //services.AddHostedService<BackgroundQueuePublisher>();
+            services.AddHostedService<BackgroundQueuePublisher>();
 
             services.AddTransient<MessagingService>();
 

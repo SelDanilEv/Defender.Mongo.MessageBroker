@@ -1,18 +1,10 @@
-﻿using Defender.Mongo.MessageBroker.Models;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
+﻿using Defender.Mongo.MessageBroker.Models.TopicMessage;
 
 namespace Defender.Mongo.MessageBroker.Interfaces.Topic;
 
-public interface ITopicProducer : ICollectionManager
+public interface ITopicProducer<T> where T : ITopicMessage, new()
 {
-    ITopicProducer SetTopic(string topicName);
-    ITopicProducer SetMessageType(string messageType);
-    ITopicProducer SetMessageType(MessageType messageType);
-    ITopicProducer SetMaxDocuments(long maxDocuments);
-    ITopicProducer SetMaxByteSize(long maxByteSize);
-
-    Task<T> PublishTopicAsync<T>(
+    Task<T> PublishTopicAsync(
         T model,
-        CancellationToken cancellationToken = default)
-            where T : ITopicMessage, new();
+        CancellationToken cancellationToken = default);
 }

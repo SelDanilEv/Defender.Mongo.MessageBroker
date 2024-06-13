@@ -1,5 +1,5 @@
-﻿using Defender.Mongo.MessageBroker.Interfaces.Queue;
-using Defender.Mongo.MessageBroker.Models;
+﻿using Defender.Mongo.MessageBroker.Configuration;
+using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Microsoft.Extensions.Hosting;
 using TestBase.Model;
 using TestBase.Model.Queue;
@@ -9,20 +9,17 @@ namespace TestBase.Services.Queue;
 
 public class BackgroundQueueRetryingListener : IHostedService, IDisposable
 {
-    private readonly IQueueConsumer _consumer;
-    private readonly TestRepository<TextMessage> _testRepository;
+    private readonly IQueueConsumer<TextMessageQ> _consumer;
+    private readonly TestRepository<TextMessageQ> _testRepository;
     private Timer? _timer;
     private bool _isRunning = false;
 
     public BackgroundQueueRetryingListener(
-        IQueueConsumer consumer, 
-        TestRepository<TextMessage> testRepository)
+        IQueueConsumer<TextMessageQ> consumer, 
+        TestRepository<TextMessageQ> testRepository)
     {
         _testRepository = testRepository;
-        _consumer = consumer.SetQueue(Queues.TextQueue)
-            .SetMessageType(MessageType.ClassName)
-            .SetMaxDocuments(1000)
-            .SetMaxByteSize(int.MaxValue);
+        _consumer = consumer;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -38,11 +35,17 @@ public class BackgroundQueueRetryingListener : IHostedService, IDisposable
             return;
         }
         _isRunning = true;
-        await _consumer.CheckQueueAsync<TextMessage>(HandleTextMessage, stoppingToken);
+
+        var options = SubscribeOptionsBuilder<TextMessageQ>
+            .Create()
+            .SetAction(HandleTextMessage);
+
+        await _consumer.RetryMissedEventsAsync(options.Build(), stoppingToken);
+
         _isRunning = false;
     }
 
-    private async Task<bool> HandleTextMessage(TextMessage text)
+    private async Task<bool> HandleTextMessage(TextMessageQ text)
     {
         var result = new Random().Next(0, 100) <= 100;
         if (result)

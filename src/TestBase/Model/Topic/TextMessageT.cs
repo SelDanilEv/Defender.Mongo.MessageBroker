@@ -1,20 +1,19 @@
 ﻿using Defender.Mongo.MessageBroker.Models.TopicMessage;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace TestBase.Model.Topic;
 
-public class TextMessage : BaseTopicMessage
+public record TextMessageT : BaseTopicMessage
 {
-    public TextMessage()
+    public TextMessageT()
     {
     }
 
-    public TextMessage(string text)
+    public TextMessageT(string text)
     {
         Text = text;
     }
 
-    public string Text { get; set; }
+    public string? Text { get; set; }
 
     public DateTime Timestamp
     {

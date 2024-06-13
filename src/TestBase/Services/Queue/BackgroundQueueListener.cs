@@ -1,5 +1,5 @@
-﻿using Defender.Mongo.MessageBroker.Interfaces.Queue;
-using Defender.Mongo.MessageBroker.Models;
+﻿using Defender.Mongo.MessageBroker.Configuration;
+using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Microsoft.Extensions.Hosting;
 using TestBase.Model;
 using TestBase.Model.Queue;
@@ -9,28 +9,40 @@ namespace TestBase.Services.Queue;
 
 public class BackgroundQueueListener : BackgroundService
 {
-    private readonly TestRepository<TextMessage> _testRepository;
-    private readonly IQueueConsumer _consumer;
+    private readonly TestRepository<TextMessageQ> _testRepository;
+    private readonly IQueueConsumer<TextMessageQ> _consumer;
 
-    public BackgroundQueueListener(IQueueConsumer consumer,
-        TestRepository<TextMessage> testRepository)
+    public BackgroundQueueListener(IQueueConsumer<TextMessageQ> consumer,
+        TestRepository<TextMessageQ> testRepository)
     {
         _testRepository = testRepository;
-        _consumer = consumer.SetQueue(Queues.TextQueue)
-            .SetMessageType(MessageType.ClassName)
-            .SetMaxDocuments(1000)
-            .SetMaxByteSize(int.MaxValue);
+        _consumer = consumer;
+
+        //.SetQueue(Queues.TextQueue)
+        //.SetMessageType(MessageType.ClassName)
+        //.SetMaxDocuments(1000)
+        //.SetMaxByteSize(int.MaxValue);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await _consumer.SubscribeQueueAsync<TextMessage>(
-            HandleTextMessage,
-            stoppingToken);
+        try
+        {
+            var options = SubscribeOptionsBuilder<TextMessageQ>
+                .Create()
+                .SetAction(HandleTextMessage);
 
+            await _consumer.SubscribeQueueAsync(
+                options.Build(),
+                cancellationToken: stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
-    private async Task<bool> HandleTextMessage(TextMessage text)
+    private async Task<bool> HandleTextMessage(TextMessageQ text)
     {
         var result = new Random().Next(0, 100) <= 90;
         if (result)

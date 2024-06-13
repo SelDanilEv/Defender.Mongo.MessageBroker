@@ -1,6 +1,5 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
 using Defender.Mongo.MessageBroker.Models.Base;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -13,14 +12,14 @@ namespace TestBase.Repositories
         private readonly IMongoDatabase _database;
         private readonly IMongoCollection<T> _collection;
 
-        public TestRepository(IOptions<MessageBrokerOptions> options)
+        public TestRepository(IOptions<TestDBOptions> options)
         {
             _client ??= new MongoClient(options.Value.MongoDbConnectionString);
             _database ??= _client.GetDatabase(options.Value.MongoDbDatabaseName);
 
-            var sufix = typeof(T) == typeof(Model.Topic.TextMessage) ? "2" : "1";
+            var name = typeof(T) == typeof(Model.Topic.TextMessageT) ? "topicData" : "queueData";
 
-            _collection = _database.GetCollection<T>("test-collection-" + sufix);
+            _collection = _database.GetCollection<T>(name);
         }
 
         public async Task<T> Insert(T model)

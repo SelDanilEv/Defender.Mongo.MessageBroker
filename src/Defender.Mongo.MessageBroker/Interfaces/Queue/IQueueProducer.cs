@@ -1,18 +1,10 @@
-﻿using Defender.Mongo.MessageBroker.Models;
-using Defender.Mongo.MessageBroker.Models.QueueMessage;
+﻿using Defender.Mongo.MessageBroker.Models.QueueMessage;
 
 namespace Defender.Mongo.MessageBroker.Interfaces.Queue;
 
-public interface IQueueProducer : ICollectionManager
+public interface IQueueProducer<T> where T : IQueueMessage, new()
 {
-    IQueueProducer SetQueue(string queueName);
-    IQueueProducer SetMessageType(string messageType);
-    IQueueProducer SetMessageType(MessageType messageType);
-    IQueueProducer SetMaxDocuments(long maxDocuments);
-    IQueueProducer SetMaxByteSize(long maxByteSize);
-
-    Task<T> PublishQueueAsync<T>(
+    Task<T> PublishQueueAsync(
         T model,
-        CancellationToken cancellationToken = default)
-            where T : IQueueMessage, new();
+        CancellationToken cancellationToken = default);
 }

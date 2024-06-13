@@ -1,21 +1,20 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
-using Defender.Mongo.MessageBroker.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using TestBase.Model.Queue;
 using TestBase.Model.Topic;
 
 namespace TestBase.Services.Topic;
 
 public class BackgroundTopicPublisher : BackgroundService
 {
-    private readonly ITopicProducer _producer;
+    private readonly ITopicProducer<TextMessageT> _producer;
     private readonly PublisherOptions _options;
 
-    public BackgroundTopicPublisher(ITopicProducer producer, IOptions<PublisherOptions> options)
+    public BackgroundTopicPublisher(ITopicProducer<TextMessageT> producer, IOptions<PublisherOptions> options)
     {
-        _producer = producer.SetTopic(Topics.TextTopic);
-        _producer = producer.SetMessageType(MessageType.ClassName);
+        _producer = producer;
 
         _options = options.Value;
 
@@ -26,10 +25,20 @@ public class BackgroundTopicPublisher : BackgroundService
         int i = 0;
         while (!stoppingToken.IsCancellationRequested)
         {
-            await _producer.PublishTopicAsync(
-                new TextMessage(
-                    $"{DateTime.UtcNow.ToShortDateString()}-{i}-{_options.MessageText}"));
-            await Task.Delay(_options.SleepTimeoutMs);
+            try
+            {
+                await _producer.PublishTopicAsync(
+                    new TextMessageT(
+                    $"{DateTime.UtcNow.ToShortDateString()}-{i++}-{_options.MessageText}"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                await Task.Delay(_options.SleepTimeoutMs, stoppingToken);
+            }
         }
     }
 }

@@ -8,18 +8,16 @@ namespace TestBase.Services.Topic;
 
 public class MessagingService
 {
-    private readonly ITopicProducer _producer;
+    private readonly ITopicProducer<TextMessageT> _producer;
 
-    public MessagingService(ITopicProducer producer)
+    public MessagingService(ITopicProducer<TextMessageT> producer)
     {
         _producer = producer;
-
-        _producer.SetTopic(Topics.TextTopic).SetMessageType(MessageType.ClassName);
     }
 
     public async Task PublishTextAsync(string text)
     {
-        var message = new TextMessage(text);
+        var message = new TextMessageT(text);
 
         await _producer.PublishTopicAsync(message);
     }

@@ -1,28 +1,89 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Interfaces.Private;
 using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
+using Defender.Mongo.MessageBroker.Models.Base;
+using Defender.Mongo.MessageBroker.Models.QueueMessage;
+using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Defender.Mongo.MessageBroker.Processing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Defender.Mongo.MessageBroker.Extensions;
 
 public static class MongoMessageBrokerExtensions
 {
-    public static IServiceCollection AddMongoMessageBrokerServices(
-        this IServiceCollection services, 
-        Action<MessageBrokerOptions> configuration)
+    public static IServiceCollection AddQueueConsumer<T>(
+        this IServiceCollection services,
+        Action<MessageBrokerOptions<T>> configureOptions) where T : IQueueMessage, new()
     {
-        services.Configure<MessageBrokerOptions>(configuration);
+        var name = services.RegisterUniqueOptions(configureOptions);
 
-        services.AddSingleton<IMessageBroker, MongoMessageBroker>();
-
-        services.AddTransient<ITopicProducer, TopicMessageProcessor>();
-        services.AddTransient<ITopicConsumer, TopicMessageProcessor>();
-
-        services.AddTransient<IQueueProducer, QueueMessageProcessor>();
-        services.AddTransient<IQueueConsumer, QueueMessageProcessor>();
+        services.AddScoped<IQueueConsumer<T>>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
+            var broker = new MongoMessageBroker<T>(options);
+            return new QueueMessageProcessor<T>(broker);
+        });
 
         return services;
+    }
+
+    public static IServiceCollection AddQueueProducer<T>(
+        this IServiceCollection services,
+        Action<MessageBrokerOptions<T>> configureOptions) where T : IQueueMessage, new()
+    {
+        var name = services.RegisterUniqueOptions(configureOptions);
+
+        services.AddScoped<IQueueProducer<T>>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
+            var broker = new MongoMessageBroker<T>(options);
+            return new QueueMessageProcessor<T>(broker);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddTopicConsumer<T>(
+        this IServiceCollection services,
+        Action<MessageBrokerOptions<T>> configureOptions) where T : ITopicMessage, new()
+    {
+        var name = services.RegisterUniqueOptions(configureOptions);
+
+        services.AddScoped<ITopicConsumer<T>>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
+            var broker = new MongoMessageBroker<T>(options);
+            return new TopicMessageProcessor<T>(broker);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddTopicProducer<T>(
+        this IServiceCollection services,
+        Action<MessageBrokerOptions<T>> configureOptions) where T : ITopicMessage, new()
+    {
+        var name = services.RegisterUniqueOptions(configureOptions);
+
+        services.AddScoped<ITopicProducer<T>>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
+            var broker = new MongoMessageBroker<T>(options);
+            return new TopicMessageProcessor<T>(broker);
+        });
+
+        return services;
+    }
+
+    private static string RegisterUniqueOptions<T>(
+        this IServiceCollection services,
+        Action<MessageBrokerOptions<T>> configureOptions) where T : IBaseMessage, new()
+    {
+        var name = Guid.NewGuid().ToString();
+
+        services.Configure<MessageBrokerOptions<T>>(name, configureOptions);
+
+        return name;
     }
 }

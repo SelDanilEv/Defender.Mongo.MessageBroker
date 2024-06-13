@@ -1,10 +1,12 @@
 using Defender.Mongo.MessageBroker.Extensions;
 using Defender.Mongo.MessageBroker.Configuration;
-using TestBase.Services.Topic;
-using TestBase.Services.Queue;
 using TestBase.Repositories;
+using TestBase.Services.Topic;
+using TestBase.Model.Topic;
+using TestBase.Model.Queue;
+using TestBase.Services.Queue;
 
-namespace TestBase
+namespace TestMongoMessagingWeb3
 {
     public static class ConfigureServices
     {
@@ -17,21 +19,25 @@ namespace TestBase
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
+            services.RegisterMessageBroker(configuration);
 
-            services.AddMongoMessageBrokerServices(opt =>
-            {
-                configuration.GetSection(nameof(MessageBrokerOptions)).Bind(opt);
-            });
+            services.Configure<PublisherOptions>(
+                configuration.GetSection(nameof(PublisherOptions)));
+            services.Configure<TestDBOptions>(
+                configuration.GetSection(nameof(TestDBOptions)));
 
+            services.AddSingleton<TestRepository<TextMessageT>>();
+            services.AddSingleton<TestRepository<TextMessageQ>>();
+
+            services.AddHostedService<SaveTopicListener>();
             //services.AddHostedService<BackgroundTopicListener>();
             services.AddHostedService<BackgroundTopicPublisher>();
-            //services.AddTransient<MessagingService>();
 
-            services.AddSingleton<TestRepository<TestBase.Model.Topic.TextMessage>>();
-            services.AddSingleton<TestRepository<TestBase.Model.Queue.TextMessage>>();
-
-            services.AddHostedService<BackgroundQueuePublisher>();
+            services.AddHostedService<BackgroundQueueRetryingListener>();
             services.AddHostedService<BackgroundQueueListener>();
+            services.AddHostedService<BackgroundQueuePublisher>();
+
+            services.AddTransient<MessagingService>();
 
             return services;
         }

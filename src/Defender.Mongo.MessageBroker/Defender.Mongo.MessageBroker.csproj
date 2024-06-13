@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<PackageId>Defender.Mongo.MessageBroker</PackageId>
-	<Version>8.0.7</Version>
+	<Version>8.1.1</Version>
 	<Authors>Defender</Authors>
 	<Company>DefenderSD</Company>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>

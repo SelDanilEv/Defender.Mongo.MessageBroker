@@ -1,31 +1,32 @@
-﻿using Defender.Mongo.MessageBroker.Interfaces;
+﻿using Defender.Mongo.MessageBroker.Configuration;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
-using Defender.Mongo.MessageBroker.Models;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using Microsoft.Extensions.Hosting;
+using MongoDB.Driver;
 using TestBase.Model;
 using TestBase.Model.Queue;
-using TestBase.Model.Topic;
-using TextMessage = TestBase.Model.Topic.TextMessage;
+using TextMessageT = TestBase.Model.Topic.TextMessageT;
 
 namespace TestBase.Services.Topic;
 
 public class BackgroundTopicListener : BackgroundService
 {
-    private readonly ITopicConsumer _consumer;
+    private readonly ITopicConsumer<TextMessageT> _consumer;
 
-    public BackgroundTopicListener(ITopicConsumer consumer)
+    public BackgroundTopicListener(ITopicConsumer<TextMessageT> consumer)
     {
         _consumer = consumer;
-
-        _consumer.SetTopic(Topics.TextTopic).SetMessageType(MessageType.ClassName);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await _consumer.SubscribeTopicAsync<TextMessage>(
-            (text) => Log.AddLog(text.Text),
-            () => DateTime.UtcNow,
+        var options = SubscribeOptionsBuilder<TextMessageT>
+            .Create()
+            .SetAction((text) => Log.AddLog(text.Text))
+            .SetFilter(FilterDefinition<TextMessageT>.Empty)
+            .SetStartDateTime(DateTime.UtcNow);
+
+        await _consumer.SubscribeTopicAsync(
+            options.Build(),
             stoppingToken);
     }
 }
