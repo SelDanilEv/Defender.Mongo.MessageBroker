@@ -1,7 +1,7 @@
 ﻿using Defender.Mongo.MessageBroker.Models.Base;
 using MongoDB.Driver;
 
-namespace Defender.Mongo.MessageBroker.Configuration;
+namespace Defender.Mongo.MessageBroker.Configuration.Subscribe;
 
 public record SubscribeOptions<T> where T : IBaseMessage, new()
 {

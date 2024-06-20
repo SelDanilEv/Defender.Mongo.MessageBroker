@@ -1,4 +1,5 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
+using Defender.Mongo.MessageBroker.Configuration.Subscribe;
 using Defender.Mongo.MessageBroker.Extensions;
 using Defender.Mongo.MessageBroker.Models.Base;
 using Defender.Mongo.MessageBroker.Models.QueueMessage;
@@ -6,7 +7,7 @@ using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Defender.Mongo.MessageBroker.Processing;
+namespace Defender.Mongo.MessageBroker.DB;
 
 internal class MongoMessageBroker<T>
     where T : IBaseMessage, new()
@@ -273,7 +274,7 @@ internal class MongoMessageBroker<T>
             || string.IsNullOrWhiteSpace(_brokerOptions.Type))
             throw new ArgumentException("Invalid options");
 
-        if ((IsTopic && IsQueue) || (!IsTopic && !IsQueue))
+        if (IsTopic && IsQueue || !IsTopic && !IsQueue)
             throw new ArgumentException("Event must be either a queue or a topic");
     }
 
@@ -295,7 +296,7 @@ internal class MongoMessageBroker<T>
         return ex is MongoConnectionException
             || ex is MongoConnectionPoolPausedException
             || ex is TimeoutException
-            || (ex is MongoCommandException exc && exc.Code == 136);
+            || ex is MongoCommandException exc && exc.Code == 136;
     }
 
 }

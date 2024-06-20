@@ -1,8 +1,9 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
+﻿using Defender.Mongo.MessageBroker.Configuration.Subscribe;
+using Defender.Mongo.MessageBroker.DB;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
 
-namespace Defender.Mongo.MessageBroker.Processing;
+namespace Defender.Mongo.MessageBroker.Implementation;
 
 internal class TopicMessageProcessor<T>(MongoMessageBroker<T> mongoMessageBroker)
     : ITopicConsumer<T>, ITopicProducer<T> where T : ITopicMessage, new()

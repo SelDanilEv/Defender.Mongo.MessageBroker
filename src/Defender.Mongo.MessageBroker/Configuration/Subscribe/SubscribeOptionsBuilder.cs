@@ -2,7 +2,7 @@
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
 using MongoDB.Driver;
 
-namespace Defender.Mongo.MessageBroker.Configuration;
+namespace Defender.Mongo.MessageBroker.Configuration.Subscribe;
 
 public record SubscribeOptionsBuilder<T> where T : IBaseMessage, new()
 {
@@ -27,7 +27,7 @@ public record SubscribeOptionsBuilder<T> where T : IBaseMessage, new()
     private static bool IsTopic => typeof(ITopicMessage).IsAssignableFrom(typeof(T));
 
     private static Func<T, Task<bool>> DefaultAction =>
-        (T t) => Task.FromResult(true);
+        (t) => Task.FromResult(true);
 
     private static Func<Task<FilterDefinition<T>>> DefaultFilter =>
         () => Task.FromResult(Builders<T>.Filter.Empty);
@@ -129,7 +129,7 @@ public record SubscribeOptionsBuilder<T> where T : IBaseMessage, new()
 
     private static Func<Q, Task<bool>> ConvertToAsyncFunc<Q>(Func<Q, bool> action)
     {
-        return (Q t) =>
+        return (t) =>
         {
             var result = action(t);
             return Task.FromResult(result);
@@ -138,7 +138,7 @@ public record SubscribeOptionsBuilder<T> where T : IBaseMessage, new()
 
     private static Func<Q, Task<bool>> ConvertToAsyncFunc<Q>(Action<Q> action)
     {
-        return (Q t) =>
+        return (t) =>
         {
             action(t);
             return Task.FromResult(true);
@@ -147,7 +147,7 @@ public record SubscribeOptionsBuilder<T> where T : IBaseMessage, new()
 
     private static Func<Q, Task<bool>> ConvertToAsyncFunc<Q>(Func<Q, Task> func)
     {
-        return (Q t) =>
+        return (t) =>
         {
             func(t);
             return Task.FromResult(true);

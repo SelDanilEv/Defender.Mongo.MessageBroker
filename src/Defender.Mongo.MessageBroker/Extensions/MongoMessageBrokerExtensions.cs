@@ -1,10 +1,11 @@
 ﻿using Defender.Mongo.MessageBroker.Configuration;
+using Defender.Mongo.MessageBroker.DB;
+using Defender.Mongo.MessageBroker.Implementation;
 using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Defender.Mongo.MessageBroker.Models.Base;
 using Defender.Mongo.MessageBroker.Models.QueueMessage;
 using Defender.Mongo.MessageBroker.Models.TopicMessage;
-using Defender.Mongo.MessageBroker.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -18,7 +19,7 @@ public static class MongoMessageBrokerExtensions
     {
         var name = services.RegisterUniqueOptions(configureOptions);
 
-        services.AddScoped<IQueueConsumer<T>>(serviceProvider =>
+        services.AddTransient<IQueueConsumer<T>>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
             var broker = new MongoMessageBroker<T>(options);
@@ -34,7 +35,7 @@ public static class MongoMessageBrokerExtensions
     {
         var name = services.RegisterUniqueOptions(configureOptions);
 
-        services.AddScoped<IQueueProducer<T>>(serviceProvider =>
+        services.AddTransient<IQueueProducer<T>>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
             var broker = new MongoMessageBroker<T>(options);
@@ -50,7 +51,7 @@ public static class MongoMessageBrokerExtensions
     {
         var name = services.RegisterUniqueOptions(configureOptions);
 
-        services.AddScoped<ITopicConsumer<T>>(serviceProvider =>
+        services.AddTransient<ITopicConsumer<T>>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
             var broker = new MongoMessageBroker<T>(options);
@@ -66,7 +67,7 @@ public static class MongoMessageBrokerExtensions
     {
         var name = services.RegisterUniqueOptions(configureOptions);
 
-        services.AddScoped<ITopicProducer<T>>(serviceProvider =>
+        services.AddTransient<ITopicProducer<T>>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptionsSnapshot<MessageBrokerOptions<T>>>().Get(name);
             var broker = new MongoMessageBroker<T>(options);

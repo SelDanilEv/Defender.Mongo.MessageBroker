@@ -1,9 +1,10 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
+﻿using Defender.Mongo.MessageBroker.Configuration.Subscribe;
+using Defender.Mongo.MessageBroker.DB;
 using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Defender.Mongo.MessageBroker.Models.QueueMessage;
 using MongoDB.Driver;
 
-namespace Defender.Mongo.MessageBroker.Processing;
+namespace Defender.Mongo.MessageBroker.Implementation;
 
 internal class QueueMessageProcessor<T>(MongoMessageBroker<T> mongoMessageBroker)
     : IQueueConsumer<T>, IQueueProducer<T> where T : IQueueMessage, new()
