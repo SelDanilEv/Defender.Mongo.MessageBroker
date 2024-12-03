@@ -1,10 +1,10 @@
-using Defender.Mongo.MessageBroker.Extensions;
-using Defender.Mongo.MessageBroker.Configuration;
-using TestBase.Repositories;
-using TestBase.Services.Topic;
-using TestBase.Model.Topic;
+using TestBase.Configuration;
+using TestBase.Extensions;
 using TestBase.Model.Queue;
+using TestBase.Model.Topic;
+using TestBase.Repositories;
 using TestBase.Services.Queue;
+using TestBase.Services.Topic;
 
 namespace TestMongoMessagingWeb1
 {

@@ -2,7 +2,7 @@
 
 namespace Defender.Mongo.MessageBroker.Configuration;
 
-public record MessageBrokerOptions<T> where T: IBaseMessage, new()
+public record MessageBrokerOptions<T> where T : IBaseMessage, new()
 {
     public string? MongoDbConnectionString { get; set; }
     public string? MongoDbDatabaseName { get; set; }

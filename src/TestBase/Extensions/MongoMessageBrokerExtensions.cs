@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Defender.Mongo.MessageBroker.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TestBase.Consts;
 using TestBase.Model.Queue;
 using TestBase.Model.Topic;
 
-namespace Defender.Mongo.MessageBroker.Extensions;
+namespace TestBase.Extensions;
 
 public static class RegisterMessageBrokerExtensions
 {

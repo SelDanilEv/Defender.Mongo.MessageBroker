@@ -1,8 +1,8 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Models.Base;
+﻿using Defender.Mongo.MessageBroker.Models.Base;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using TestBase.Configuration;
 
 namespace TestBase.Repositories
 {

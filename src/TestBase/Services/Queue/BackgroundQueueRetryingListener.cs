@@ -1,4 +1,4 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
+﻿using Defender.Mongo.MessageBroker.Configuration.Subscribe;
 using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Microsoft.Extensions.Hosting;
 using TestBase.Model;
@@ -15,7 +15,7 @@ public class BackgroundQueueRetryingListener : IHostedService, IDisposable
     private bool _isRunning = false;
 
     public BackgroundQueueRetryingListener(
-        IQueueConsumer<TextMessageQ> consumer, 
+        IQueueConsumer<TextMessageQ> consumer,
         TestRepository<TextMessageQ> testRepository)
     {
         _testRepository = testRepository;
@@ -30,7 +30,7 @@ public class BackgroundQueueRetryingListener : IHostedService, IDisposable
 
     private async Task Retry(object? state, CancellationToken stoppingToken)
     {
-        if(_isRunning)
+        if (_isRunning)
         {
             return;
         }

@@ -1,7 +1,7 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Interfaces.Queue;
+﻿using Defender.Mongo.MessageBroker.Interfaces.Queue;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using TestBase.Configuration;
 using TestBase.Model.Queue;
 
 namespace TestBase.Services.Queue;

@@ -1,7 +1,4 @@
-﻿using Defender.Mongo.MessageBroker.Interfaces;
-using Defender.Mongo.MessageBroker.Interfaces.Topic;
-using Defender.Mongo.MessageBroker.Models;
-using Defender.Mongo.MessageBroker.Models.TopicMessage;
+﻿using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using TestBase.Model.Topic;
 
 namespace TestBase.Services.Topic;

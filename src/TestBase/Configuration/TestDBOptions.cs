@@ -1,4 +1,4 @@
-﻿namespace Defender.Mongo.MessageBroker.Configuration;
+﻿namespace TestBase.Configuration;
 
 public sealed record TestDBOptions
 {

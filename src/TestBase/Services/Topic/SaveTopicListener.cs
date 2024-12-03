@@ -1,4 +1,4 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
+﻿using Defender.Mongo.MessageBroker.Configuration.Subscribe;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Microsoft.Extensions.Hosting;
 using TestBase.Model;

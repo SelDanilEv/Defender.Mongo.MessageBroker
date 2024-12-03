@@ -1,9 +1,8 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
+﻿using Defender.Mongo.MessageBroker.Configuration.Subscribe;
 using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using TestBase.Model;
-using TestBase.Model.Queue;
 using TextMessageT = TestBase.Model.Topic.TextMessageT;
 
 namespace TestBase.Services.Topic;

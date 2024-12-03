@@ -1,8 +1,7 @@
-﻿using Defender.Mongo.MessageBroker.Configuration;
-using Defender.Mongo.MessageBroker.Interfaces.Topic;
+﻿using Defender.Mongo.MessageBroker.Interfaces.Topic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using TestBase.Model.Queue;
+using TestBase.Configuration;
 using TestBase.Model.Topic;
 
 namespace TestBase.Services.Topic;
